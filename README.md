@@ -113,21 +113,6 @@ export LOG_LEVEL="DEBUG"
 This approach allows the same code to run in different environments like development, staging, and production.
 ---
 
-## Environment Configuration
-
-You can customize the application using environment variables:
-
-APP_NAME
-→ Application name
-
-LOG_LEVEL
-→ Logging level (INFO, DEBUG, etc.)
-
-Example:
-
-export APP_NAME="My Backend Service"
-export LOG_LEVEL="DEBUG"
----
 ## Purpose
 
 This template is designed as a foundation for:
