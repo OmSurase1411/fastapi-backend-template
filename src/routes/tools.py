@@ -24,6 +24,25 @@ FAKE_CUSTOMERS = {
     }
 }
 
+FAKE_VEHICLES = {
+    "VIN123": {
+        "model": "BMW X5",
+        "year": 2023,
+        "status": "In Service"
+    },
+    "VIN456": {
+        "model": "BMW 3 Series",
+        "year": 2021,
+        "status": "Out of Service"
+    },
+    "VIN789": {
+        "model": "BMW i4",
+        "year": 2024,
+        "status": "In Production"
+    }
+}
+
+
 class EchoRequest(BaseModel):
     text: str
 
@@ -89,4 +108,35 @@ def customer_lookup_tool(request: CustomerLookupRequest):
         tool="customer_lookup",
         input=request.customer_id,
         output=customer
+    )
+
+
+#--------VEHICLE INFO TOOL---------
+class VehicleInfoRequest(BaseModel):
+    vin: str
+
+
+class VehicleInfoResponse(BaseModel):
+    tool: str
+    input: str
+    output: dict
+
+
+@router.post("/vehicle_info", response_model=VehicleInfoResponse)
+def vehicle_info_tool(request: VehicleInfoRequest):
+    logger.info(f"Vehicle info lookup called for VIN: {request.vin}")
+
+    vehicle = FAKE_VEHICLES.get(request.vin)
+
+    if not vehicle:
+        return VehicleInfoResponse(
+            tool="vehicle_info",
+            input=request.vin,
+            output={"error": "Vehicle not found"}
+        )
+
+    return VehicleInfoResponse(
+        tool="vehicle_info",
+        input=request.vin,
+        output=vehicle
     )
