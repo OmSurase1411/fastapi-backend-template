@@ -5,9 +5,6 @@ from typing import Any, Optional
 from datetime import datetime, timezone
 
 
-
-
-
 router = APIRouter(prefix="/tools", tags=["tools"])
 logger = setup_logger()
 
@@ -175,3 +172,22 @@ def time_tool():
         output=now,
         message=None
     )
+
+class AddRequest(BaseModel):
+    a: float
+    b: float
+
+@router.post("/add", response_model= ToolResponse)
+def add_tool(request: AddRequest):
+    logger.info(f"Add tool called with a={request.a},b={request.b}")
+
+    result = request.a + request.b
+
+    return ToolResponse(
+        tool = "add",
+        status = "success",
+        input = [request.a, request.b],
+        output = result,
+        message = None
+    )
+
