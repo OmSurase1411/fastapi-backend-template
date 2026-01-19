@@ -17,3 +17,11 @@ app.include_router(agent_router)
 # Register global error handler
 app.add_exception_handler(Exception, global_exception_handler)
 
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # dev only
+    allow_methods=["*"],
+    allow_headers=["*"],
+)

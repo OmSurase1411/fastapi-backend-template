@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8" />
+   <title>Agent Assistant</title>
+
+
+   <style>
+       body {
+           font-family: Arial, Helvetica, sans-serif;
+           background: #f4f6f8;
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           height: 100vh;
+           margin: 0;
+       }
+
+
+       .card {
+           background: white;
+           width: 420px;
+           padding: 24px;
+           border-radius: 10px;
+           box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+       }
+
+
+       h2 {
+           margin-top: 0;
+           text-align: center;
+           color: #333;
+       }
+
+
+       input {
+           width: 94%;
+           padding: 12px;
+           font-size: 16px;
+           border-radius: 6px;
+           border: 1px solid #ccc;
+           margin-bottom: 12px;
+       }
+
+
+       button {
+           width: 100%;
+           padding: 12px;
+           font-size: 16px;
+           border-radius: 6px;
+           border: none;
+           background: #2563eb;
+           color: white;
+           cursor: pointer;
+       }
+
+
+       button:hover {
+           background: #1d4ed8;
+       }
+
+
+       .response {
+           margin-top: 20px;
+           padding: 14px;
+           border-radius: 6px;
+           background: #f1f5f9;
+           color: #0f172a;
+           min-height: 40px;
+       }
+
+
+       .loading {
+           color: #64748b;
+           font-style: italic;
+       }
+
+
+       .error {
+           color: #b91c1c;
+           background: #fee2e2;
+       }
+   </style>
+</head>
+
+
+<body>
+
+
+<div class="card">
+   <h2>🤖 Agent Assistant</h2>
+
+
+   <input
+       id="userInput"
+       placeholder="Ask anything… e.g. add 2 and 6"
+   />
+
+
+   <button onclick="callAgent()">Ask Agent</button>
+
+
+   <div id="response" class="response"></div>
+</div>
+
+
+<script>
+async function callAgent() {
+   const input = document.getElementById("userInput").value;
+   const responseBox = document.getElementById("response");
+
+
+   responseBox.className = "response loading";
+   responseBox.innerText = "Thinking…";
+
+
+   try {
+       const res = await fetch("http://127.0.0.1:8000/agent/run", {
+           method: "POST",
+           headers: { "Content-Type": "application/json" },
+           body: JSON.stringify({ text: input })
+       });
+
+
+       const data = await res.json();
+
+
+       // ---- USER-FRIENDLY OUTPUT ----
+       let displayText = "";
+
+
+       if (data.status === "error") {
+           displayText = data.message || "No matching record found.";
+           responseBox.className = "response error";
+       }
+       else if (typeof data.output === "string") {
+           displayText = data.output;
+           responseBox.className = "response";
+       }
+       else if (typeof data.output === "number") {
+           displayText = `✅ Result: ${data.output}`;
+           responseBox.className = "response";
+       }
+       else if (typeof data.output === "object" && data.output !== null) {
+           displayText = Object.entries(data.output)
+               .map(([key, value]) => `${key}: ${value}`)
+               .join("\n");
+           responseBox.className = "response";
+       }
+       else {
+           displayText = "Done.";
+           responseBox.className = "response";
+       }
+
+
+       responseBox.innerText = displayText;
+
+
+   } catch (err) {
+       responseBox.className = "response error";
+       responseBox.innerText = "Something went wrong. Please try again.";
+   }
+}
+</script>
+
+
+
+
+</body>
+</html>
+
+
+
