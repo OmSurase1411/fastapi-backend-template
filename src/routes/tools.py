@@ -66,7 +66,7 @@ def echo_tool(request: EchoRequest):
 
     return ToolResponse(
         tool = "echo",
-         status="success",
+        status="success",
         input = request.text,
         output = request.text
     )
