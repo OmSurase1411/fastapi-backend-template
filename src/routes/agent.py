@@ -62,28 +62,37 @@ async def execute_tool(tool_name: str, user_text: str):
                 json={"a": numbers[0], "b": numbers[1]}
             )
             return r.json()
-
         elif tool_name == "customer_lookup":
             import re
             match = re.search(r"(cust\d+)", user_text.lower())
             if not match:
-                return {"error": "Customer ID not found"}
+                return {
+                    "status": "failed",
+                    "message": "I think you forgot the Customer ID. Please enter something like CUST123."
+                }
+
             r = await client.post(
                 f"{TOOLS_BASE_URL}/customer_lookup",
                 json={"customer_id": match.group(1).upper()}
             )
             return r.json()
 
+
         elif tool_name == "vehicle_info":
             import re
             match = re.search(r"(vin\d+)", user_text.lower())
             if not match:
-                return {"error": "VIN not found"}
+                return {
+                    "status": "failed",
+                    "message": "I think you forgot the VIN number. Please enter something like VIN123."
+                }
+
             r = await client.post(
                 f"{TOOLS_BASE_URL}/vehicle_info",
                 json={"vin": match.group(1).upper()}
             )
             return r.json()
+        
 
         elif tool_name == "uppercase":
             r = await client.post(

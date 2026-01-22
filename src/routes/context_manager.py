@@ -4,14 +4,18 @@ class ContextManager:
     This class controls exactly what the LLM sees and how it must behave.
     """
 
+
     def __init__(self):
         self.system_message = """
 You are an enterprise-grade AI agent controller.
 
+
 Rules you must follow strictly:
+
 
 1. You must respond with valid JSON only.
 2. Your response must follow this exact schema:
+
 
 {
   "intent": "string",
@@ -19,6 +23,7 @@ Rules you must follow strictly:
   "tool_name": "string or null",
   "final_response": "string"
 }
+
 
 3. Do not add any text outside JSON.
 4. Do not use markdown.
@@ -33,11 +38,22 @@ Rules you must follow strictly:
    - "vehicle_info"
    - "uppercase"
 
+
 10. If no tool is required:
-   - tool_called must be false
-   - tool_name must be null
+    - tool_called must be false
+    - tool_name must be null
+
 
 11. Think like a system controller, not a chatbot.
+
+
+12. final_response must ALWAYS be a non-empty string.
+    Never set final_response to null.
+    Even if a tool is being called, write a short explanation or acknowledgement.
+    Examples:
+    - "Looking up the customer details."
+    - "Fetching vehicle information."
+    - "Calculating the result."
 """
 
 
@@ -50,10 +66,15 @@ Rules you must follow strictly:
 SYSTEM:
 {self.system_message}
 
+
 USER:
 {user_input}
+
 
 ASSISTANT:
 Return ONLY the JSON object that follows the schema.
 """
         return prompt.strip()
+
+
+

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <title>Agent Assistant</title>
 
     <style>
@@ -17,7 +17,7 @@
 
         .card {
             background: white;
-            width: 420px;
+            width: 450px;
             padding: 24px;
             border-radius: 10px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
@@ -75,81 +75,121 @@
     </style>
 </head>
 <body>
+
 <div class="card">
     <h2>🤖 Agent Assistant</h2>
 
     <input
         id="userInput"
-        placeholder="Ask anything… e.g. add 2 and 6"
+        placeholder="Ask something… e.g. Find customer CUST123 or Add 4 and 5"
     />
 
     <button onclick="callAgent()">Ask Agent</button>
 
-    <div id="response" class="response"></div></div>
+    <div id="response" class="response"></div>
+</div>
 
 <script>
-    async function callAgent() {
-        const input = document.getElementById("userInput").value;
-        const responseBox = document.getElementById("response");
+async function callAgent() {
+    const input = document.getElementById("userInput").value;
+    const responseBox = document.getElementById("response");
 
-        responseBox.className = "response loading";
-        responseBox.innerText = "Thinking…";
+    responseBox.className = "response loading";
+    responseBox.innerText = "Thinking…";
 
-        try {
-            const res = await fetch("http://127.0.0.1:8000/agent/run", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ text: input })
-            });
+    try {
+        const res = await fetch("http://127.0.0.1:8000/agent/run", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: input })
+        });
 
-            const data = await res.json();
+        const data = await res.json();
+        const toolResult = data.tool_result;
 
-            // Agent-level failure
-            if (data.status === "failed") {
-                responseBox.className = "response error";
-                responseBox.innerText =
-                    data.result?.message || "Agent failed to process the request.";
-                return;
+        /* -------------------------------------------------
+           1. If backend returned a polite validation error
+              (like missing VIN / CUST ID),
+              show explanation + warning message
+        -------------------------------------------------- */
+        if (toolResult && toolResult.status === "failed") {
+            responseBox.className = "response";
+
+            let text = "";
+
+            // Show LLM explanation first if present
+            if (data.final_response) {
+                text += data.final_response + "\n\n";
             }
 
-            const toolData = data.result;
-            let displayText = "";
+            // Then show polite warning
+            text += "⚠️ " + toolResult.message;
 
-            if (!toolData) {
-                displayText = "No response from agent.";
-                responseBox.className = "response error";
-            }
-            else if (toolData.status === "failed") {
-                displayText = toolData.message || "No matching record found.";
-                responseBox.className = "response error";
-            }
-            else if (typeof toolData.output === "string") {
-                displayText = toolData.output;
-                responseBox.className = "response";
-            }
-            else if (typeof toolData.output === "number") {
-                displayText = `✅ Result: ${toolData.output}`;
-                responseBox.className = "response";
-            }
-            else if (typeof toolData.output === "object" && toolData.output !== null) {
-                displayText = Object.entries(toolData.output)
-                    .map(([key, value]) => `${key}: ${value}`)
-                    .join("\n");
-                responseBox.className = "response";
-            }
-            else {
-                displayText = "Done.";
-                responseBox.className = "response";
-            }
-
-            responseBox.innerText = displayText;
-
-        } catch (err) {
-            responseBox.className = "response error";
-            responseBox.innerText = "Something went wrong. Please try again.";
-            console.error(err);
+            responseBox.innerText = text;
+            return;
         }
+
+        /* -------------------------------------------------
+           2. If no tool was used → show LLM-only response
+        -------------------------------------------------- */
+        if (!data.tool_called) {
+            responseBox.className = "response";
+            responseBox.innerText = data.final_response;
+            return;
+        }
+
+        const toolName = data.tool_name.toLowerCase();
+
+        /* ---------------- CUSTOMER LOOKUP ---------------- */
+        if (toolName.includes("customer")) {
+            const customer = toolResult.output;
+
+            responseBox.className = "response";
+            responseBox.innerText =
+`Your customer details for ${toolResult.input}:
+
+Name   : ${customer.name}
+Email  : ${customer.email}
+Status : ${customer.status}`;
+            return;
+        }
+
+        /* ---------------- ADD / CALCULATOR ---------------- */
+        if (toolName.includes("add") || toolName.includes("calc")) {
+            responseBox.className = "response";
+            responseBox.innerText = `The result is: ${toolResult.output}`;
+            return;
+        }
+
+        /* ---------------- VEHICLE INFO ---------------- */
+        if (toolName.includes("vehicle") || toolName.includes("vin")) {
+            const v = toolResult.output;
+
+            let formatted = `Vehicle details for ${toolResult.input}:\n\n`;
+            for (const key in v) {
+                formatted += `${key.toUpperCase()} : ${v[key]}\n`;
+            }
+
+            responseBox.className = "response";
+            responseBox.innerText = formatted;
+            return;
+        }
+
+        /* ---------------- FALLBACK ---------------- */
+        responseBox.className = "response";
+        responseBox.innerText = data.final_response;
+
+    } catch (err) {
+        responseBox.className = "response error";
+        responseBox.innerText = "Something went wrong. Please try again.";
+        console.error(err);
     }
+}
 </script>
+
+
 </body>
 </html>
+
+
+
