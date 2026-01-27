@@ -67,6 +67,29 @@ Rules enforced:
 
 This transforms the LLM from a chatbot into a deterministic **decision engine**.
 
+---
+
+
+## 🏗️ System Architecture
+
+
+```
+User → MCP Prompt → LLM → JSON Decision → Tool Execution → Unified Response → UI
+```
+
+
+| Component | Role |
+|--------|------|
+| ContextManager | Enforces MCP and controls LLM behavior |
+| LLMClient | Communicates with Ollama |
+| Agent Router | Orchestrates tool decisions |
+| Tools Layer | Deterministic APIs |
+| Frontend | Interprets and formats agent responses |
+
+
+---
+
+
 
 ## 🛠️ Available Tools
 
