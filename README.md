@@ -86,7 +86,6 @@ User → MCP Prompt → LLM → JSON Decision → Tool Execution → Unified Res
 | Tools Layer | Deterministic APIs |
 | Frontend | Interprets and formats agent responses |
 
-
 ---
 
 
